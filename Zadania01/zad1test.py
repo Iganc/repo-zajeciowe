@@ -1,4 +1,5 @@
 import pytest
+from zad1 import *
 
 def test_product_validation():
     with pytest.raises(ValueError):
