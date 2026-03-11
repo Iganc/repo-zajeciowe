@@ -1,0 +1,14 @@
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">Szczegóły transakcji #{{ transaction.id }}</div>
+        <div class="card-body">
+            <p><strong>Data:</strong> {{ transaction.date }}</p>
+            <p><strong>Kwota:</strong> {{ transaction.amount }} zł</p>
+            <p><strong>Kategoria:</strong> {{ transaction.category.name }}</p>
+            <p><strong>Opis:</strong> {{ transaction.description|default:"Brak opisu" }}</p>
+            <hr>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Powrót</a>
+            <a href="{% url 'transaction_delete' transaction.pk %}" class="btn btn-danger">Usuń</a>
+        </div>
+    </div>
+</div>

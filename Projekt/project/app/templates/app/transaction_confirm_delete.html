@@ -1,0 +1,11 @@
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h3>Czy na pewno chcesz usunąć tę transakcję?</h3>
+        <p>{{ transaction.amount }} zł z dnia {{ transaction.date }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Tak, usuń trwale</button>
+            <a href="{% url 'transaction_detail' transaction.pk %}" class="btn btn-secondary">Anuluj</a>
+        </form>
+    </div>
+</div>
