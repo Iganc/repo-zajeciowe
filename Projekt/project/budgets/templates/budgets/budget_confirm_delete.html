@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuń cel - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">🗑️ Usuń cel budżetowy</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <strong>⚠️ Uwaga!</strong> Czy na pewno chcesz usunąć ten cel budżetowy?
+                </div>
+
+                <div class="card mb-4 bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ goal.name }}</h5>
+                        <p class="card-text mb-0">
+                            <strong>Alokowana kwota:</strong> {{ goal.allocated_amount }} zł
+                        </p>
+                        <p class="card-text">
+                            <strong>Zebrano:</strong> {{ goal.current_amount }} zł
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-muted">
+                    Po usunięciu tego celu <strong>nie będzie można go odzyskać</strong>. Transakcje przypisane do niego pozostaną w systemie.
+                </p>
+
+                <form method="post" class="d-grid gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        Tak, usuń cel
+                    </button>
+                    <a href="{% url 'budget_detail' goal.pk %}" class="btn btn-outline-secondary">
+                        Nie, anuluj
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

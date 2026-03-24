@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Logowanie - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Logowanie</h2>
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Nazwa użytkownika</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form.username.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Hasło</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form.password.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Zaloguj się</button>
+                </form>
+                
+                <div class="text-center">
+                    <small>Nie masz konta? <a href="{% url 'register' %}">Zarejestruj się tutaj</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

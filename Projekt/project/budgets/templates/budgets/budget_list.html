@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Cele Budżetowe - MyBudget{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5">Cele Budżetowe</h1>
+    <a href="{% url 'budget_create' %}" class="btn btn-success">+ Nowy cel</a>
+</div>
+
+{% if budget_goals %}
+    <div class="row">
+        {% for goal in budget_goals %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ goal.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Postęp:</strong></span>
+                            <span class="badge bg-info">{{ goal.progress_percent }}%</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ goal.progress_percent }}%;" 
+                                 aria-valuenow="{{ goal.progress_percent }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {{ goal.current_amount }} zł
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Zebrano</small>
+                            <p class="h6 mb-0">{{ goal.current_amount }} zł</p>
+                        </div>
+                        <div class="col-6">
+                                    <small class="text-muted">Alokacja</small>
+                            <p class="h6 mb-0">{{ goal.allocated_amount }} zł</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-3">
+                        <strong>Pozostało:</strong> {{ goal.remaining }} zł
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'budget_detail' goal.pk %}" class="btn btn-sm btn-info flex-grow-1">
+                            👁️ Szczegóły
+                        </a>
+                        <a href="{% url 'budget_edit' goal.pk %}" class="btn btn-sm btn-primary">
+                            ✏️ Edytuj
+                        </a>
+                        <a href="{% url 'budget_delete' goal.pk %}" class="btn btn-sm btn-danger">
+                            🗑️ Usuń
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">📋 Brak celów budżetowych</h4>
+        <p>Nie masz żadnych celów oszczędnościowych. Kliknij przycisk "+ Nowy cel" aby stworzyć swój pierwszy cel!</p>
+    </div>
+{% endif %}
+{% endblock %}

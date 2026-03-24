@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.account.id_for_label }}" class="form-label fw-bold">{{ form.account.label }}</label>
+                        {{ form.account }}
+                        {% if form.account.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form.account.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">Nazwa celu oszczędnościowego (np. Wakacje, Nowy laptop)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.allocated_amount.id_for_label }}" class="form-label fw-bold">{{ form.allocated_amount.label }}</label>
+                        {{ form.allocated_amount }}
+                        {% if form.allocated_amount.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form.allocated_amount.errors }}
+                        </div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">Kwota którą alokujesz z konta na ten cel</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Zapisz cel</button>
+                        <a href="{% url 'budget_list' %}" class="btn btn-outline-secondary">Anuluj</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

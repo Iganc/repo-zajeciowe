@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Dodaj Transakcję - MyBudget{% endblock %}
+{% block title %}Edytuj Transakcję - MyBudget{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card shadow">
-            <div class="card-header bg-success text-white" id="card-header">
-                <h3 class="mb-0">Nowa Transakcja</h3>
+            <div class="card-header text-white" id="card-header" data-type="{{ transaction.transaction_type }}">
+                <h3 class="mb-0">Edytuj Transakcję</h3>
             </div>
             <div class="card-body">
                 {% if form.non_field_errors %}
@@ -28,7 +28,8 @@
                                 <input type="radio" name="transaction_type" value="{{ value }}" 
                                        id="id_{{ form.transaction_type.name }}_{{ forloop.counter0 }}"
                                        class="btn-check"
-                                       {% if form.transaction_type.value == value or form.transaction_type.value == None and forloop.first %}checked{% endif %}>
+                                       {% if form.transaction_type.value == value %}checked{% endif %}
+                                       data-type="{{ value }}">
                                 <label for="id_{{ form.transaction_type.name }}_{{ forloop.counter0 }}" 
                                        class="btn fw-bold flex-grow-1"
                                        style="padding: 12px; border: 2px solid #dee2e6; cursor: pointer; transition: all 0.3s ease;"
@@ -145,19 +146,20 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.budget_goal.id_for_label }}" class="form-label fw-bold">{{ form.budget_goal.label }}</label>
-                        {{ form.budget_goal }}
-                        <small class="text-muted d-block mt-1">Wybierz konto powyżej, aby zobaczyć dostępne cele</small>
-                        {% if form.budget_goal.errors %}
+                        <label class="form-label fw-bold">{{ form.budget_goals.label }}</label>
+                        <div id="budget-goals-container" class="border rounded p-3" style="background-color: #f8f9fa; min-height: 80px;">
+                            <small class="text-muted">Ładowanie celów...</small>
+                        </div>
+                        {% if form.budget_goals.errors %}
                         <div class="alert alert-danger mt-2">
-                            {{ form.budget_goal.errors }}
+                            {{ form.budget_goals.errors }}
                         </div>
                         {% endif %}
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success" id="submit-btn">Zapisz transakcję</button>
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Anuluj</a>
+                        <button type="submit" class="btn btn-warning text-dark" id="submit-btn">Zapisz zmiany</button>
+                        <a href="{% url 'transaction_detail' transaction.pk %}" class="btn btn-outline-secondary">Anuluj</a>
                     </div>
                 </form>
             </div>
@@ -170,37 +172,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const radioInputs = document.querySelectorAll('input[name="transaction_type"]');
     const cardHeader = document.getElementById('card-header');
     const submitBtn = document.getElementById('submit-btn');
+    const initialType = cardHeader.getAttribute('data-type');
     const accountSelect = document.getElementById('id_account');
-    const budgetGoalSelect = document.getElementById('id_budget_goal');
+    const budgetGoalsContainer = document.getElementById('budget-goals-container');
+    const transactionId = {{ transaction.pk }};
+    
+    // Pobierz listę ID celów którym jest przypisana ta transakcja
+    const selectedGoalsIds = {{ selected_goal_ids|safe }};
     
     function updateColors() {
         const selectedType = document.querySelector('input[name="transaction_type"]:checked').value;
         
         if (selectedType === 'EXPENSE') {
             // Wydatek - czerwony
-            cardHeader.classList.remove('bg-success');
-            cardHeader.classList.add('bg-danger');
-            submitBtn.classList.remove('btn-success');
+            cardHeader.classList.remove('bg-warning', 'bg-success', 'text-dark');
+            cardHeader.classList.add('bg-danger', 'text-white');
+            submitBtn.classList.remove('btn-warning', 'btn-success', 'text-dark');
             submitBtn.classList.add('btn-danger');
         } else {
             // Przychód - zielony
-            cardHeader.classList.remove('bg-danger');
-            cardHeader.classList.add('bg-success');
-            submitBtn.classList.remove('btn-danger');
+            cardHeader.classList.remove('bg-warning', 'bg-danger', 'text-dark');
+            cardHeader.classList.add('bg-success', 'text-white');
+            submitBtn.classList.remove('btn-warning', 'btn-danger', 'text-dark');
             submitBtn.classList.add('btn-success');
         }
     }
     
     function loadBudgetGoals() {
-        if (!accountSelect.value) {
-            // Wyczyść opcje jeśli nie wybrano konta
-            budgetGoalSelect.innerHTML = '<option value="">Brak - na konto</option>';
+        const accountId = accountSelect.value;
+        
+        if (!accountId) {
+            budgetGoalsContainer.innerHTML = '<small class="text-muted">Wybierz konto, aby zobaczyć dostępne cele</small>';
             return;
         }
         
-        console.log('Loading budget goals for account:', accountSelect.value);
+        budgetGoalsContainer.innerHTML = '<small class="text-muted">Ładowanie...</small>';
         
-        fetch(`/transactions/api/budget-goals/?account_id=${accountSelect.value}`)
+        fetch(`/transactions/api/budget-goals/?account_id=${accountId}`)
             .then(response => {
                 console.log('Response status:', response.status);
                 if (!response.ok) {
@@ -211,22 +219,39 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(goals => {
                 console.log('Loaded goals:', goals);
                 
-                // Sprawdź czy to lista
-                if (!Array.isArray(goals)) {
-                    budgetGoalSelect.innerHTML = '<option value="">Błąd: Nieprawidłowa odpowiedź</option>';
+                // Sprawdź czy to lista czy obiekt z błędem
+                if (goals.success === false) {
+                    budgetGoalsContainer.innerHTML = `<small class="text-danger">Błąd: ${goals.error}</small>`;
                     return;
                 }
                 
-                // Buduj opcje
-                let html = '<option value="">Brak - na konto</option>';
-                goals.forEach(goal => {
-                    html += `<option value="${goal.id}">${goal.name} (${goal.balance.toFixed(2)} zł)</option>`;
-                });
-                budgetGoalSelect.innerHTML = html;
+                if (!Array.isArray(goals)) {
+                    budgetGoalsContainer.innerHTML = '<small class="text-danger">Błąd: Nieprawidłowa odpowiedź z serwera</small>';
+                    return;
+                }
+                
+                if (goals.length === 0) {
+                    budgetGoalsContainer.innerHTML = '<small class="text-muted">Brak dostępnych celów budżetowych dla tego konta. <a href="/budgets/add/">Stwórz nowy cel</a></small>';
+                } else {
+                    let html = '';
+                    goals.forEach(goal => {
+                        const isSelected = selectedGoalsIds.includes(goal.id);
+                        
+                        html += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="budget_goals" value="${goal.id}" id="goal_${goal.id}" ${isSelected ? 'checked' : ''}>
+                                <label class="form-check-label" for="goal_${goal.id}">
+                                    ${goal.name}
+                                </label>
+                            </div>
+                        `;
+                    });
+                    budgetGoalsContainer.innerHTML = html;
+                }
             })
             .catch(error => {
                 console.error('Error loading budget goals:', error);
-                budgetGoalSelect.innerHTML = `<option value="">Błąd: ${error.message}</option>`;
+                budgetGoalsContainer.innerHTML = `<small class="text-danger">Błąd przy ładowaniu celów: ${error.message}</small>`;
             });
     }
     
@@ -241,10 +266,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Nasłuchuj na zmianę konta i ładuj cele
     accountSelect.addEventListener('change', loadBudgetGoals);
     
-    // Ładuj cele na start jeśli jest wybrane konto
-    if (accountSelect.value) {
-        loadBudgetGoals();
-    }
+    // Ładuj cele na start
+    loadBudgetGoals();
 });
 </script>
 {% endblock %}

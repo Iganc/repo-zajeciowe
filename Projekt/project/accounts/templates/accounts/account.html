@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Moje Konta - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5">Moje Konta</h1>
+            <a href="{% url 'add_account' %}" class="btn btn-success">+ Nowe konto</a>
+        </div>
+
+        {% if accounts %}
+            <div class="row">
+                {% for account in accounts %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">{{ account.name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted">Saldo konta</small>
+                                <p class="h3 fw-bold text-success">{{ account.balance }} zł</p>
+                            </div>
+                            
+                            <div class="alert alert-info mb-0">
+                                <small>ID konta: {{ account.id }}</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light d-flex gap-2">
+                            <a href="#" class="btn btn-sm btn-outline-primary" disabled>
+                                Edytuj
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-danger" disabled>
+                                Usuń
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <p>Nie masz żadnych kont. <a href="{% url 'add_account' %}">Stwórz pierwsze konto</a></p>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-4">← Powrót do panelu</a>
+    </div>
+</div>
+{% endblock %}

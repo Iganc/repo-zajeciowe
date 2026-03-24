@@ -1,11 +1,38 @@
-<div class="container mt-5">
-    <div class="alert alert-danger">
-        <h3>Czy na pewno chcesz usunąć tę transakcję?</h3>
-        <p>{{ transaction.amount }} zł z dnia {{ transaction.date }}</p>
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Tak, usuń trwale</button>
-            <a href="{% url 'transaction_detail' transaction.pk %}" class="btn btn-secondary">Anuluj</a>
-        </form>
+{% extends 'base.html' %}
+
+{% block title %}Usuń Transakcję - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">Potwierdzenie usunięcia</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <strong>⚠️ Uwaga!</strong> Ta operacja nie może być cofnięta.
+                </div>
+                
+                <p>Czy na pewno chcesz usunąć tę transakcję?</p>
+                
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <p class="mb-2"><strong>Data:</strong> {{ transaction.date|date:"d.m.Y" }}</p>
+                        <p class="mb-2"><strong>Kwota:</strong> <span class="h5">{{ transaction.amount }} zł</span></p>
+                        <p class="mb-0"><strong>Konto:</strong> {{ transaction.account.name }}</p>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger flex-grow-1">Tak, usuń trwale</button>
+                        <a href="{% url 'transaction_detail' transaction.pk %}" class="btn btn-secondary flex-grow-1">Anuluj</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}

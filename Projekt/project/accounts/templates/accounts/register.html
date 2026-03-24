@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Rejestracja - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Rejestracja</h2>
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Nazwa użytkownika</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="alert alert-danger mt-2 mb-0">
+                            {{ form.username.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="alert alert-danger mt-2 mb-0">
+                            {{ form.email.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Hasło</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="alert alert-danger mt-2 mb-0">
+                            {{ form.password1.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Potwierdzenie hasła</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="alert alert-danger mt-2 mb-0">
+                            {{ form.password2.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-text mb-3">
+                        <small>
+                            {{ form.password1.help_text|safe }}
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Zarejestruj się</button>
+                </form>
+                
+                <div class="text-center">
+                    <small>Masz już konto? <a href="{% url 'login' %}">Zaloguj się tutaj</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

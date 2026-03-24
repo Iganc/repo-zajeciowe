@@ -3,8 +3,8 @@ from .models import BudgetGoal, RecurringPayment
 
 @admin.register(BudgetGoal)
 class BudgetGoalAdmin(admin.ModelAdmin):
-    list_display = ('name', 'user', 'target_amount', 'current_amount')
-    list_filter = ('user',)
+    list_display = ('name', 'user', 'account', 'allocated_amount', 'balance')
+    list_filter = ('user', 'account')
 
 @admin.register(RecurringPayment)
 class RecurringPaymentAdmin(admin.ModelAdmin):

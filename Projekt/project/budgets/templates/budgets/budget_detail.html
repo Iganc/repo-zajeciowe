@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ goal.name }} - MyBudget{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">{{ goal.name }}</h3>
+            </div>
+            <div class="card-body">
+                <!-- Pasek postępu -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5>Postęp oszczędzania:</h5>
+                        <span class="badge bg-info" style="font-size: 16px;">{{ goal.progress_percent }}%</span>
+                    </div>
+                    <div class="progress" style="height: 40px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ goal.progress_percent }}%;" 
+                             aria-valuenow="{{ goal.progress_percent }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            <span style="font-weight: bold; color: white;">{{ goal.current_amount }} zł</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Podsumowanie -->
+                <div class="row mb-4">
+                    <div class="col-md-4 text-center">
+                        <h6 class="text-muted">Zebrano</h6>
+                        <p class="h4 text-success fw-bold">{{ goal.current_amount }} zł</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h6 class="text-muted">Cel</h6>
+                        <p class="h4 text-primary fw-bold">{{ goal.allocated_amount }} zł</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h6 class="text-muted">Pozostało</h6>
+                        <p class="h4 text-warning fw-bold">{{ goal.remaining }} zł</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Przypisane transakcje -->
+                <h5 class="mb-3">Ostatnie transakcje ({{ transactions.count }})</h5>
+                
+                {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Kategoria</th>
+                                    <th>Opis</th>
+                                    <th class="text-end">Kwota</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.date|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if transaction.category %}
+                                            <span class="badge bg-light text-dark">{{ transaction.category.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ transaction.description|truncatechars:30 }}</td>
+                                    <td class="text-end fw-bold text-success">{{ transaction.amount }} zł</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">Brak transakcji przypisanych do tego celu.</p>
+                {% endif %}
+
+                <hr>
+
+                <!-- Akcje -->
+                <div class="d-flex gap-2">
+                    <a href="{% url 'budget_list' %}" class="btn btn-secondary">← Powrót</a>
+                    <a href="{% url 'budget_edit' goal.pk %}" class="btn btn-primary">✏️ Edytuj</a>
+                    <a href="{% url 'budget_delete' goal.pk %}" class="btn btn-danger">🗑️ Usuń cel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

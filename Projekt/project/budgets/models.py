@@ -1,17 +1,22 @@
 from django.db import models
 from django.contrib.auth.models import User
-from transactions.models import Transaction, Category
+from accounts.models import Account
+from transactions.models import Category
 
 # Create your models here.
 class BudgetGoal(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budget_goals')
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='budget_goals')
     name = models.CharField(max_length=100)
-    target_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    current_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    related_transactions = models.ManyToManyField(Transaction, blank=True)
+    allocated_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Budget Goals"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.user.username}) - balance: {self.balance}"
 
 class RecurringPayment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

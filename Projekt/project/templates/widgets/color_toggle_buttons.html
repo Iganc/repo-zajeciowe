@@ -1,0 +1,111 @@
+<div class="btn-group w-100" role="group" id="{{ widget.attrs.id }}" style="display: flex; gap: 0;">
+    {% for group, options, index in widget.optgroups %}
+        {% for option in options %}
+            <input type="radio" name="{{ widget.name }}" value="{{ option.value }}" 
+                   id="id_{{ widget.name }}_{{ forloop.counter0 }}"
+                   class="btn-check"
+                   {% if option.value == value or value == None and forloop.first %}checked{% endif %}>
+            <label for="id_{{ widget.name }}_{{ forloop.counter0 }}" 
+                   class="btn fw-bold flex-grow-1"
+                   style="padding: 10px; border: 2px solid #dee2e6; cursor: pointer; transition: all 0.3s ease;"
+                   data-type="{{ option.value }}">
+                <span style="font-size: 16px;">{{ option.label }}</span>
+            </label>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<style>
+    #id_transaction_type {
+        display: flex !important;
+        gap: 0 !important;
+    }
+
+    #id_transaction_type .btn {
+        flex: 1;
+        background-color: #f8f9fa;
+        color: #333;
+        border: 2px solid #dee2e6;
+        border-radius: 0;
+        padding: 12px !important;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    #id_transaction_type .btn:first-child {
+        border-radius: 5px 0 0 5px;
+    }
+
+    #id_transaction_type .btn:last-child {
+        border-radius: 0 5px 5px 0;
+    }
+
+    #id_transaction_type .btn-check:checked + .btn {
+        font-weight: 700;
+        color: white;
+        border: 2px solid transparent;
+    }
+
+    /* Wydatek = Expense = Red */
+    #id_transaction_type_0:checked + .btn,
+    .btn[data-type="EXPENSE"]:has(+ .btn-check:checked) {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    /* Przychód = Income = Green */
+    #id_transaction_type_1:checked + .btn,
+    .btn[data-type="INCOME"]:has(+ .btn-check:checked) {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+
+    #id_transaction_type .btn:hover:not(:has(~ .btn-check:checked)) {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    #id_transaction_type .btn:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('#id_transaction_type .btn');
+    const radios = document.querySelectorAll('#id_transaction_type .btn-check');
+    
+    buttons.forEach((btn, index) => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            radios[index].checked = true;
+            radios[index].dispatchEvent(new Event('change', { bubbles: true }));
+            updateButtonColors();
+        });
+    });
+
+    function updateButtonColors() {
+        radios.forEach((radio, index) => {
+            const btn = buttons[index];
+            if (radio.checked) {
+                if (radio.value === 'EXPENSE') {
+                    btn.style.backgroundColor = '#dc3545';
+                    btn.style.borderColor = '#dc3545';
+                } else {
+                    btn.style.backgroundColor = '#28a745';
+                    btn.style.borderColor = '#28a745';
+                }
+                btn.style.color = 'white';
+            } else {
+                btn.style.backgroundColor = '#f8f9fa';
+                btn.style.borderColor = '#dee2e6';
+                btn.style.color = '#333';
+            }
+        });
+    }
+
+    updateButtonColors();
+});
+</script>

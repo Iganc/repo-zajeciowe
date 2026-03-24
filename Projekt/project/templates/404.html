@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Strona nie znaleziona{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="text-center">
+        <div style="font-size: 120px; color: #dc3545; margin-bottom: 20px;">
+            ❌
+        </div>
+        
+        <h1 class="display-3 fw-bold mb-3">404</h1>
+        
+        <h2 class="h3 mb-4 text-muted">
+            Strona nie znaleziona
+        </h2>
+        
+        <p class="lead mb-5" style="font-size: 18px; color: #666;">
+            Niestety, ta strona zniknęła! Możliwe powody:
+        </p>
+        
+        <ul class="list-unstyled mb-5" style="font-size: 16px; color: #666;">
+            <li class="mb-2">🔗 Link jest zepsuty lub nieistniejący</li>
+            <li class="mb-2">🗑️ Transakcja została usunięta</li>
+            <li class="mb-2">👤 Konto lub zasób nie istnieje</li>
+            <li class="mb-2">🔐 Może brakuje dostępu do tego zasobu</li>
+        </ul>
+        
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+                ← Powrót na Dashboard
+            </a>
+            <a href="/" class="btn btn-outline-secondary btn-lg">
+                🏠 Strona główna
+            </a>
+        </div>
+        
+        <hr class="my-5" style="border-top: 1px solid #ddd;">
+        
+        <p class="text-muted small">
+            Jeśli uważasz, że to błąd, skontaktuj się z administratorem.
+        </p>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+</style>
+{% endblock %}

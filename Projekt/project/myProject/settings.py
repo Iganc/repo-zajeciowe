@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-(b35n5i%hnvk=8abdp!!!hn-edng0w)10++*)i@^jj$nj@v%i1"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -119,3 +119,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Authentication
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_URL = 'login'
+
+# Error pages
+DEBUG = False
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
+# 404 and 500 handlers
+handler404 = 'myProject.views.handler_404'
+handler500 = 'myProject.views.handler_500'
