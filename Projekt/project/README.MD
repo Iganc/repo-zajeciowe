@@ -47,11 +47,11 @@ python manage.py runserver
 
 ## 💰 Logika Alokacji Budżetu
 
-Głównym mechanizmem wyróżniającym aplikację jest separacja salda głównego od celów oszczędnościowych:
+Głównym mechanizmem wyróżniającym aplikację jest inteligentna separacja salda głównego od funduszy celowych:
 
-1. **Utworzenie celu:** Rezerwacja 5000 zł na "Wakacje" natychmiastowo pomniejsza saldo główne konta o tę kwotę.
-2. **Wydatki celowe:** Transakcja powiązana z celem "Wakacje" pomniejsza wyłącznie budżet tego celu, nie ruszając salda konta (środki zostały już wcześniej odłożone).
-3. **Anulowanie:** Usunięcie celu budżetowego automatycznie zwraca niewykorzystane środki z powrotem na saldo głównego konta.
+* **1. Planowanie celu:** Utworzenie celu „Wakacje” (np. na 5000 zł) określa docelową kwotę, ale nie blokuje jej natychmiastowo. Saldo główne pomniejsza się sukcesywnie tylko o realnie wpłacane na ten cel raty lub nadwyżki.
+* **2. Wydatki celowe:** Transakcja powiązana z celem „Wakacje” pomniejsza wyłącznie zgromadzony budżet tego celu, nie wpływając na bieżące saldo operacyjne (środki zostały zabezpieczone wcześniej).
+* **3. Anulowanie:** Usunięcie celu budżetowego powoduje automatyczny zwrot wszystkich dotychczas przypisanych do niego środków z powrotem na saldo główne konta.
 
 ---
 
@@ -115,6 +115,6 @@ Poniżej zestawienie spełnionych wymagań technicznych dla projektu:
 ### Wymagania Dodatkowe (Zrealizowano minimum 3):
 1. **Stylizacja z wykorzystaniem CSS/frameworka:** Aplikacja używa **Bootstrap 5.3.0** do budowy interfejsu (grid, przyciski, tabele, responsywność).
 2. **Możliwość tworzenia kont przez użytkowników oraz logowania:** Zaimplementowano pełny system uwierzytelniania w aplikacji `accounts`.
-3. **Zaawansowane opcje:** Dynamiczne pobieranie celów budżetowych w formularzu transakcji za pomocą zapytań **AJAX** (JavaScript).
+3. **Zaawansowane Opcje:** Możliwość generowania raportów w plikach csv.
 
 ---
