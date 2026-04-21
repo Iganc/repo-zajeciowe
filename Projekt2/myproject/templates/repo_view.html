@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('repos.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('repos.view_repo', repo_id=repo.id) }}">{{ repo.name }}</a>
+    </li>
+    {% for crumb in breadcrumbs %}
+    <li class="breadcrumb-item active">
+        <a href="{{ url_for('repos.view_repo', repo_id=repo.id, path=crumb.path) }}">{{ crumb.name }}</a>
+    </li>
+    {% endfor %}
+  </ol>
+</nav>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0">
+            {% if current_path %}
+                <span class="text-muted">Lokalizacja:</span> root/{{ current_path }}
+            {% else %}
+                Pliki w repozytorium
+            {% endif %}
+        </h5>
+        
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('repos.repo_history', repo_id=repo.id) }}" class="btn btn-outline-dark btn-sm d-flex align-items-center">
+                Historia
+            </a>
+            <a href="{{ url_for('repos.download_repo', repo_id=repo.id) }}" class="btn btn-outline-success btn-sm d-flex align-items-center">
+                Pobierz ZIP
+            </a>
+            
+            <div class="dropdown">
+                <button class="btn btn-dark btn-sm dropdown-toggle" type="button" id="addFileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Add file +
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="addFileDropdown">
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadFilesModal">Wgraj pliki</a></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadFolderModal">Wgraj folder</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#createFolderModal">Nowy pusty folder</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <ul class="list-group list-group-flush">
+        {% if current_path %}
+        <li class="list-group-item bg-light py-1">
+            <a href="javascript:history.back()" class="text-decoration-none text-secondary small">
+                ↩ .. (powrót)
+            </a>
+        </li>
+        {% endif %}
+
+        {% for file in files %}
+            {% if file.name != '.gitkeep' %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    {% if file.type == 'folder' %}
+                        📁 <strong>
+                            <a href="{{ url_for('repos.view_repo', repo_id=repo.id, path=file.path) }}" class="text-decoration-none">
+                                {{ file.name }}
+                            </a>
+                        </strong>
+                    {% else %}
+                        📄 {{ file.name }}
+                    {% endif %}
+                </span>
+                <span class="badge bg-light text-dark font-monospace">
+                    {% if file.type == 'file' %}{{ file.size }} bytes{% else %}folder{% endif %}
+                </span>
+            </li>
+            {% endif %}
+        {% else %}
+            <li class="list-group-item text-center text-muted py-5">
+                To repozytorium jest puste.
+            </li>
+        {% endfor %}
+
+        {# Obsługa pustego folderu z ukrytym .gitkeep #}
+        {% if files|length == 1 and files[0].name == '.gitkeep' %}
+            <li class="list-group-item text-center text-muted py-5">
+                Ten folder jest pusty.
+            </li>
+        {% endif %}
+    </ul>   
+</div>
+
+<div class="modal fade" id="uploadFilesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('repos.upload_file', repo_id=repo.id, path=current_path) }}" method="post" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Wgraj pliki</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" name="files" class="form-control" multiple required>
+                    <p class="text-muted small mt-2">Pliki zostaną dodane do: <strong>root/{{ current_path if current_path else '' }}</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Zacommituj pliki</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadFolderModal" tabindex="-1">
+    <div class="dialog modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('repos.upload_folder', repo_id=repo.id, path=current_path) }}" method="post" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Wgraj folder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" name="files" class="form-control" webkitdirectory directory multiple required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Wgraj folder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createFolderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('repos.create_folder', repo_id=repo.id, path=current_path) }}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Stwórz nowy folder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="folder_name" class="form-control" placeholder="Nazwa folderu" required>
+                    <p class="text-muted small mt-2">Folder powstanie w: <strong>root/{{ current_path if current_path else '' }}</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Utwórz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

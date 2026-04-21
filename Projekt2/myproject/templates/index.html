@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Twoje Repozytoria</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newRepoModal">+ Nowe Repozytorium</button>
+</div>
+
+<div class="row">
+    {% for repo in repos %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title text-truncate" style="max-width: 80%;">{{ repo.name }}</h5>
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark p-0 text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="box-shadow: none;">
+                            <span style="font-size: 1.1rem; vertical-align: middle;">&#8942;</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#renameModal{{ repo.id }}">✏️ Zmień nazwę</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal{{ repo.id }}">🗑️ Usuń repozytorium</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('repos.view_repo', repo_id=repo.id) }}" class="btn btn-outline-primary btn-sm w-100 mt-2">Otwórz kod</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="renameModal{{ repo.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ url_for('repos.rename_repo', repo_id=repo.id) }}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Zmień nazwę repozytorium</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label">Nowa nazwa</label>
+                        <input type="text" name="new_name" class="form-control" value="{{ repo.name }}" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal{{ repo.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">⚠️ Usuwanie repozytorium</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Czy na pewno chcesz usunąć repozytorium <strong>{{ repo.name }}</strong>?<br>
+                    <small class="text-muted">Uwaga: Pliki na dysku również zostaną usunięte.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <form action="{{ url_for('repos.delete_repo', repo_id=repo.id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Tak, usuń trwale</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5 col-12">
+        <p class="text-muted">Nie masz jeszcze żadnych repozytoriów.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="newRepoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('repos.create_repo') }}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Stwórz nowe repozytorium</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Nazwa projektu</label>
+                    <input type="text" name="repo_name" class="form-control" placeholder="np. moj-projekt-python" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Inicjalizuj Git</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

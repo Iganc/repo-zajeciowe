@@ -3,22 +3,24 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-4">
-        <div class="card shadow border-success">
-            <div class="card-body">
-                <h3 class="card-title text-center mb-4 text-success">Załóż konto</h3>
-                <form method="post">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-4">Rejestracja</h3>
+                <form method="POST" action="{{ url_for('auth.register') }}">
                     <div class="mb-3">
-                        <label class="form-label">Wybierz login</label>
-                        <input type="text" name="username" class="form-control" required>
+                        <label class="form-label fw-bold">Wybierz login</label>
+                        <input type="text" name="username" class="form-control" placeholder="Wpisz login" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Hasło</label>
-                        <input type="password" name="password" class="form-control" required>
+                        <label class="form-label fw-bold">Hasło</label>
+                        <input type="password" name="password" class="form-control" placeholder="Wpisz hasło" required>
                     </div>
-                    <button type="submit" class="btn btn-success w-100">Zarejestruj</button>
+                    <button type="submit" class="btn btn-dark w-100 py-2">Załóż konto</button>
                 </form>
-                <hr>
-                <p class="text-center mb-0"><a href="/login">Wróć do logowania</a></p>
+                <hr class="my-4">
+                <p class="text-center mb-0 text-muted">
+                    Masz już konto? <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-bold">Wróć do logowania</a>
+                </p>
             </div>
         </div>
     </div>

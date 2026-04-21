@@ -1,0 +1,9 @@
+instance/
+repos/
+repos_data/
+*.db
+*.zip
+__pycache__/
+.vscode/
+.venv/
+venv/
