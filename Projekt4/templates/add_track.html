@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-success border-opacity-25 mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0 fw-bold">Dodaj nowy utwór do bazy danych (iTunes API)</h5>
+            </div>
+            <div class="card-body">
+                
+                <div class="mb-3 position-relative">
+                    <label for="itunes_search" class="form-label fw-bold text-primary">Krok 1: Znajdź utwór na świecie za pomocą iTunes API:</label>
+                    <input type="text" id="itunes_search" class="form-control" placeholder="Wyszukaj wykonawcę lub tytuł...">
+                    <ul class="list-group mt-1 position-absolute w-100 shadow" id="itunes_results" style="display: none; z-index: 1050; max-height: 200px; overflow-y: auto;"></ul>
+                </div>
+
+                <div class="d-none" id="param_panel">
+                    <h6 class="fw-bold text-dark mt-4 mb-2">Krok 2: Ustaw parametry brzmienia i przypisz gatunek:</h6>
+                    
+                    <div class="d-flex align-items-center mb-4 bg-light p-3 rounded border">
+                        <div id="track_artwork_container"></div>
+                        <div>
+                            <span class="d-block fw-bold fs-5" id="display_title"></span>
+                            <span class="text-muted" id="display_artist"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded border border-secondary border-opacity-25">
+                        <label for="custom_genre" class="form-label fw-bold text-secondary">Wpisz gatunek muzyczny dla tego utworu:</label>
+                        <input type="text" class="form-control" id="custom_genre" placeholder="Np. Rock, Pop, Electronic, Bollywood...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="danceability" class="form-label d-flex justify-content-between">
+                            <span>Taneczność (Danceability)</span> <span id="dance-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="danceability" value="0.5" oninput="document.getElementById('dance-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="energy" class="form-label d-flex justify-content-between">
+                            <span>Energia (Energy)</span> <span id="energy-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="energy" value="0.5" oninput="document.getElementById('energy-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="acousticness" class="form-label d-flex justify-content-between">
+                            <span>Akustyczność (Acousticness)</span> <span id="acoustic-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="acousticness" value="0.5" oninput="document.getElementById('acoustic-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tempo" class="form-label d-flex justify-content-between">
+                            <span>Tempo (BPM)</span> <span id="tempo-val">120</span>
+                        </label>
+                        <input type="range" class="form-range" min="40" max="220" step="1" id="tempo" value="120" oninput="document.getElementById('tempo-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="valence" class="form-label d-flex justify-content-between">
+                            <span>Wydźwięk pozytywny (Valence)</span> <span id="valence-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="valence" value="0.5" oninput="document.getElementById('valence-val').innerText=this.value">
+                    </div>
+
+                    <button type="button" class="btn btn-success btn-lg w-100 shadow-sm" id="save_to_db_btn">
+                        Zapisz utwór na stałe w bazie danych (CSV)
+                    </button>
+                    <div id="db_status_msg" class="text-center mt-3 fw-bold fs-6"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentExternalTrack = null;
+    const itunesInput = document.getElementById('itunes_search');
+    const itunesResults = document.getElementById('itunes_results');
+
+    // Wyszukiwanie piosenek w iTunes przez API
+    itunesInput.addEventListener('input', function(e) {
+        let query = e.target.value.trim();
+        if (query.length < 3) { itunesResults.style.display = 'none'; return; }
+
+        fetch('/api/search?q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                itunesResults.innerHTML = '';
+                if (data && data.length > 0) {
+                    itunesResults.style.display = 'block';
+                    data.forEach(track => {
+                        let li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action d-flex align-items-center';
+                        li.style.cursor = 'pointer';
+                        let img = track.image_url ? `<img src="${track.image_url}" class="me-2 rounded" style="width: 35px; height: 35px;">` : '';
+                        li.innerHTML = `${img} <div><strong>${track.name}</strong> <br><small class="text-muted">${track.artist}</small></div>`;
+                        
+                        li.onclick = function() {
+                            currentExternalTrack = track;
+                            document.getElementById('itunes_search').value = track.name + " - " + track.artist;
+                            
+                            // Wypełnienie i pokazanie panelu edycji cech
+                            document.getElementById('display_title').innerText = track.name;
+                            document.getElementById('display_artist').innerText = track.artist;
+                            document.getElementById('track_artwork_container').innerHTML = track.image_url ? `<img src="${track.image_url}" class="me-3 rounded shadow-sm" style="width: 60px; height: 60px;">` : '';
+                            document.getElementById('param_panel').classList.remove('d-none');
+                            
+                            itunesResults.style.display = 'none';
+                        };
+                        itunesResults.appendChild(li);
+                    });
+                } else { itunesResults.style.display = 'none'; }
+            });
+    });
+
+    // Zapisywanie nowego utworu za pomocą POST do API
+    document.getElementById('save_to_db_btn').addEventListener('click', function() {
+        const selectedGenre = document.getElementById('custom_genre').value.trim();
+        const msgDiv = document.getElementById('db_status_msg');
+        
+        if (!currentExternalTrack) return;
+        if (!selectedGenre) {
+            msgDiv.className = "text-danger";
+            msgDiv.innerText = "Błąd: Wpisz gatunek przed zapisem utworu!";
+            return;
+        }
+
+        const payload = {
+            name: currentExternalTrack.name,
+            artist: currentExternalTrack.artist,
+            genre: selectedGenre,
+            danceability: document.getElementById('danceability').value,
+            energy: document.getElementById('energy').value,
+            acousticness: document.getElementById('acousticness').value,
+            tempo: document.getElementById('tempo').value,
+            valence: document.getElementById('valence').value
+        };
+
+        fetch('/api/add_custom_track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.status === 'success') {
+                msgDiv.className = "text-success";
+                msgDiv.innerText = res.message;
+                // Wyczyszczenie formularza po udanym zapisie
+                setTimeout(() => {
+                    document.getElementById('param_panel').classList.add('d-none');
+                    document.getElementById('itunes_search').value = "";
+                    document.getElementById('custom_genre').value = "";
+                    msgDiv.innerText = "";
+                }, 2500);
+            } else {
+                msgDiv.className = "text-danger";
+                msgDiv.innerText = "Błąd: " + res.error;
+            }
+        })
+        .catch(err => {
+            msgDiv.className = "text-danger";
+            msgDiv.innerText = "Wystąpił błąd komunikacji z serwerem.";
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== itunesInput) itunesResults.style.display = 'none';
+    });
+</script>
+{% endblock %}

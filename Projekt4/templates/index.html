@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        {% if true_genre and (prediction or all_predictions) %}
+        <div class="alert alert-secondary text-center shadow-sm mb-4 border border-secondary border-opacity-25" role="alert">
+            Badany utwór z bazy: <strong>{{ song_name }}</strong><br>
+            Prawdziwy gatunek w bazie (Ground Truth): <span class="badge bg-success fs-6 mt-1">{{ true_genre }}</span>
+        </div>
+        {% endif %}
+
+        {% if all_predictions %}
+        <div class="alert alert-info shadow-sm mb-4" role="alert">
+            <h4 class="alert-heading text-center mb-4">Porównanie Modeli</h4>
+            <div class="row text-start">
+                {% for m_name, result in all_predictions.items() %}
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 shadow-sm border-info border-opacity-25">
+                        <div class="card-header bg-white text-info fw-bold small">{{ m_name }}</div>
+                        <div class="card-body">
+                            <h4 class="card-title text-center fw-bold mb-3">
+                                {{ result.prediction }}
+                                {% if true_genre %}
+                                    {% if true_genre|lower in result.prediction|lower %}
+                                        <span class="text-success small fw-normal ms-1">(Trafny)</span>
+                                    {% else %}
+                                        <span class="text-danger small fw-normal ms-1">(Nietrafny)</span>
+                                    {% endif %}
+                                {% endif %}
+                            </h4>
+                            {% if result.probabilities %}
+                                {% for genre, prob in result.probabilities.items() %}
+                                    {% if loop.index <= 3 %}
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span>{{ genre }}</span>
+                                        <span>{{ prob }}%</span>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 5px;">
+                                        <div class="progress-bar {% if loop.first %}bg-info{% else %}bg-secondary{% endif %}" role="progressbar" style="width: {{ prob }}%;" aria-valuenow="{{ prob }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="small text-muted text-center">Brak możliwości oceny prawdopodobieństwa.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif prediction %}
+        <div class="alert alert-success text-center shadow-sm mb-4" role="alert">
+            <h4 class="alert-heading">Wynik Predykcji!</h4>
+            <p class="mb-0">Na podstawie analizy cech audio, algorytm przewiduje gatunek:</p>
+            <h1 class="display-4 fw-bold mt-2">
+                {{ prediction }}
+                {% if true_genre %}
+                    {% if true_genre|lower in prediction|lower %}
+                        <span class="text-success fs-3 fw-normal ms-2">(Poprawna klasyfikacja)</span>
+                    {% else %}
+                        <span class="text-danger fs-3 fw-normal ms-2">(Błędna klasyfikacja)</span>
+                    {% endif %}
+                {% endif %}
+            </h1>
+            
+            {% if probabilities %}
+            <div class="mt-4 text-start bg-white p-3 rounded text-dark shadow-sm">
+                <h6 class="mb-3 text-secondary">Pewność klasyfikacji modelu:</h6>
+                {% for genre, prob in probabilities.items() %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1 fw-bold">
+                        <span>{{ genre }}</span>
+                        <span>{{ prob }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar {% if loop.first %}bg-success{% else %}bg-secondary{% endif %}" role="progressbar" style="width: {{ prob }}%;" aria-valuenow="{{ prob }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 text-primary">Wprowadź cechy utworu</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/">
+                    
+                    <input type="hidden" id="true_genre" name="true_genre" value="">
+                    <input type="hidden" id="song_name" name="song_name" value="">
+                    
+                    <div class="mb-4 p-3 bg-white rounded border border-primary border-opacity-25 shadow-sm position-relative">
+                        <label for="song_search" class="form-label fw-bold text-primary">Wyszukaj gotowy utwór z lokalnej bazy danych (CSV)</label>
+                        <input type="text" id="song_search" class="form-control" placeholder="Zacznij wpisywać nazwę utworu...">
+                        <ul class="list-group mt-1 position-absolute w-100 shadow" id="search_results" style="display: none; z-index: 1000; max-width: 96%; max-height: 200px; overflow-y: auto;"></ul>
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded border">
+                        <div class="form-check form-switch mb-3 pb-3 border-bottom">
+                            <input class="form-check-input" type="checkbox" id="evaluate_all" name="evaluate_all">
+                            <label class="form-check-label fw-bold text-primary" for="evaluate_all">Użyj wszystkich modeli i porównaj wyniki</label>
+                        </div>
+                        <label for="model_choice" class="form-label fw-bold text-secondary" id="model_choice_label">Wybierz algorytm klasyfikacji</label>
+                        <select class="form-select" id="model_choice" name="model_choice">
+                            {% for model_key, model_display_name in available_models.items() %}
+                                <option value="{{ model_key }}" {% if model_key == selected_model_name %}selected{% endif %}>{{ model_display_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="danceability" class="form-label d-flex justify-content-between">
+                            <span>Taneczność (Danceability)</span>
+                            <span id="dance-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="danceability" name="danceability" value="0.5" oninput="document.getElementById('dance-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="energy" class="form-label d-flex justify-content-between">
+                            <span>Energia (Energy)</span>
+                            <span id="energy-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="energy" name="energy" value="0.5" oninput="document.getElementById('energy-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="acousticness" class="form-label d-flex justify-content-between">
+                            <span>Akustyczność (Acousticness)</span>
+                            <span id="acoustic-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="acousticness" name="acousticness" value="0.5" oninput="document.getElementById('acoustic-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tempo" class="form-label d-flex justify-content-between">
+                            <span>Tempo (BPM)</span>
+                            <span id="tempo-val">120</span>
+                        </label>
+                        <input type="range" class="form-range" min="40" max="220" step="1" id="tempo" name="tempo" value="120" oninput="document.getElementById('tempo-val').innerText=this.value">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="valence" class="form-label d-flex justify-content-between">
+                            <span>Wydźwięk pozytywny (Valence)</span>
+                            <span id="valence-val">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" min="0" max="1" step="0.01" id="valence" name="valence" value="0.5" oninput="document.getElementById('valence-val').innerText=this.value">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Klasyfikuj Utwór</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('evaluate_all').addEventListener('change', function(e) {
+        let select = document.getElementById('model_choice');
+        let label = document.getElementById('model_choice_label');
+        select.disabled = this.checked;
+        this.checked ? label.classList.add('text-muted') : label.classList.remove('text-muted');
+    });
+
+    // POPRAWKA: Czyszczenie pola wyszukiwarki tekstowej po dotknięciu suwaków
+    document.querySelectorAll('.form-range').forEach(item => {
+        item.addEventListener('input', function() {
+            document.getElementById('true_genre').value = "";
+            document.getElementById('song_name').value = "";
+            document.getElementById('song_search').value = ""; // Czyści tekst "Nazwa utworu", bo parametry uległy zmianie
+        });
+    });
+
+    const localInput = document.getElementById('song_search');
+    const localResults = document.getElementById('search_results');
+
+    localInput.addEventListener('input', function(e) {
+        let query = e.target.value.trim();
+        if (query.length < 3) { localResults.style.display = 'none'; return; }
+        
+        fetch('/api/search_song?q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                localResults.innerHTML = '';
+                if (data && data.length > 0) {
+                    localResults.style.display = 'block';
+                    data.forEach(song => {
+                        let li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action';
+                        li.style.cursor = 'pointer';
+                        li.innerHTML = `<strong>${song.name}</strong> <span class="text-muted small">by ${song.artist}</span>`;
+                        
+                        li.onclick = function() {
+                            document.getElementById('danceability').value = song.danceability; document.getElementById('dance-val').innerText = song.danceability;
+                            document.getElementById('energy').value = song.energy; document.getElementById('energy-val').innerText = song.energy;
+                            document.getElementById('acousticness').value = song.acousticness; document.getElementById('acoustic-val').innerText = song.acousticness;
+                            document.getElementById('tempo').value = song.tempo; document.getElementById('tempo-val').innerText = song.tempo;
+                            document.getElementById('valence').value = song.valence; document.getElementById('valence-val').innerText = song.valence;
+                            
+                            document.getElementById('song_search').value = song.name;
+                            document.getElementById('true_genre').value = song.genre;
+                            document.getElementById('song_name').value = song.name + " - " + song.artist;
+                            localResults.style.display = 'none';
+                        };
+                        localResults.appendChild(li);
+                    });
+                } else { localResults.style.display = 'none'; }
+            });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== localInput) localResults.style.display = 'none';
+    });
+</script>
+{% endblock %}
